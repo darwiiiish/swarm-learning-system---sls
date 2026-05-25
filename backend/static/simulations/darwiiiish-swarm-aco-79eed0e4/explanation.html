@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ant Colony Optimization (ACO) Explanation</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Lexend:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- KaTeX for beautiful math equations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0f0b08;
+            --panel-bg: rgba(26, 20, 16, 0.75);
+            --card-bg: rgba(40, 32, 26, 0.4);
+            --text-primary: #ffffff;
+            --text-secondary: #d0c0b0;
+            --text-muted: #8b7460;
+            --accent: #a3e635; /* Bright Pheromone Lime */
+            --accent-glow: rgba(163, 230, 53, 0.25);
+            --border-color: rgba(163, 230, 53, 0.15);
+            --border-hover: rgba(163, 230, 53, 0.45);
+            --radius-lg: 16px;
+            --radius-md: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 10% 20%, rgba(163, 230, 53, 0.03) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(139, 116, 96, 0.05) 0%, transparent 50%);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar customization */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(163, 230, 53, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(163, 230, 53, 0.4);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        /* Header block */
+        header {
+            text-align: center;
+            padding: 2.5rem;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        header h1 {
+            font-family: 'Lexend', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        header h1 span {
+            color: var(--accent);
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Content Section */
+        section {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            transition: var(--transition);
+        }
+
+        section:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 12px 30px rgba(163, 230, 53, 0.05);
+        }
+
+        section h2 {
+            font-family: 'Lexend', sans-serif;
+            font-size: 1.6rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: #ece3db;
+            font-size: 1.05rem;
+        }
+
+        /* Highlighting */
+        strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Columns Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(163, 230, 53, 0.1);
+        }
+
+        .card h3 {
+            font-family: 'Lexend', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: #dcd2c9;
+            margin-bottom: 0;
+        }
+
+        /* Math Block styling */
+        .math-block {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin: 1.5rem 0;
+            font-size: 1.1rem;
+            overflow-x: auto;
+            color: #fff;
+        }
+
+        /* Code block styling */
+        pre {
+            background: #0b0806;
+            border: 1px solid rgba(163, 230, 53, 0.1);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: #f3f4f6;
+        }
+
+        .code-keyword { color: #a3e635; font-weight: bold; }
+        .code-comment { color: var(--text-muted); font-style: italic; }
+        .code-string { color: #f59e0b; }
+
+        /* Alert/Callout Box */
+        .callout {
+            background: rgba(163, 230, 53, 0.05);
+            border: 1px solid rgba(163, 230, 53, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .callout-icon {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 2px;
+        }
+
+        .callout-text h4 {
+            font-family: 'Lexend', sans-serif;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+        }
+
+        .callout-text p {
+            font-size: 0.95rem;
+            margin-bottom: 0;
+            color: #ece3db;
+        }
+
+        /* Icon Styling */
+        .lucide {
+            vertical-align: middle;
+            stroke-width: 2px;
+        }
+        
+        section h2 .lucide {
+            color: var(--accent);
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            header, section {
+                padding: 1.5rem;
+            }
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ant Colony Optimization (<span>ACO</span>)</h1>
+            <p>Metaheuristic Optimization Inspired by Ant Foraging and Pheromone Trails</p>
+        </header>
+
+        <section>
+            <h2><i data-lucide="activity" class="lucide"></i> Biological Inspiration</h2>
+            <p>
+                In the physical world, blind ants manage to discover the shortest path between their nest and a food source. The **Ant Colony Optimization (ACO)** algorithm, developed by Marco Dorigo in 1992, recreates this behavior using an artificial swarm. It operates on a simple feedback loop:
+            </p>
+            <div class="grid">
+                <div class="card">
+                    <h3><i data-lucide="route" class="lucide" style="color: #a3e635;"></i> Pheromone Laying</h3>
+                    <p>As ants travel, they deposit a volatile chemical trail called <strong>pheromone</strong>. Subsequent ants detect these pheromones and prefer to travel along routes with higher pheromone concentrations.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-lucide="trending-up" class="lucide" style="color: #a3e635;"></i> Positive Feedback</h3>
+                    <p>Ants taking the shorter path travel faster, making more round trips. Consequently, they deposit pheromones quicker than ants on the longer path, reinforcing the shorter route progressively.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-lucide="wind" class="lucide" style="color: #a3e635;"></i> Trail Evaporation</h3>
+                    <p>Over time, pheromones evaporate. This prevents the system from getting trapped in early sub-optimal paths (premature convergence) and allows the swarm to dynamically discover new, better paths.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2><i data-lucide="binary" class="lucide"></i> Mathematical Formulation</h2>
+            <p>
+                In ACO, the search space is modeled as a graph where nodes represent cities/checkpoints, and edges denote candidate path transitions.
+            </p>
+
+            <h3>1. Path Transition Probability</h3>
+            <p>
+                An ant \(k\) currently at node \(i\) chooses to move to node \(j\) according to a probability distribution that balances pheromone intensity and physical proximity:
+            </p>
+            <div class="math-block">
+                $$P_{ij}^k = \frac{[\tau_{ij}]^\alpha [\eta_{ij}]^\beta}{\sum_{l \in \text{allowed}_k} [\tau_{il}]^\alpha [\eta_{il}]^\beta}$$
+            </div>
+            <p>
+                Where:
+                <br>• \(\tau_{ij}\) is the pheromone concentration on the edge between nodes \(i\) and \(j\).
+                <br>• \(\alpha\) is a parameter controlling the weight of the pheromone trail history.
+                <br>• \(\eta_{ij}\) is the heuristic desirability of the move, typically defined as the inverse of the distance: \(\eta_{ij} = \frac{1}{d_{ij}}\).
+                <br>• \(\beta\) is a parameter controlling the weight of the local visibility (short-sighted distance step).
+                <br>• \(\text{allowed}_k\) is the set of unvisited nodes for ant \(k\).
+            </p>
+
+            <h3>2. Pheromone Evaporation</h3>
+            <p>
+                Once all ants complete their tours, pheromones are evaporated across all edges to simulate the chemical dispersion:
+            </p>
+            <div class="math-block">
+                $$\tau_{ij} \leftarrow (1 - \rho)\tau_{ij}$$
+            </div>
+            <p>
+                Where \(\rho\) is the **evaporation rate** (\(0 \le \rho < 1\)).
+            </p>
+
+            <h3>3. Pheromone Deposit Update</h3>
+            <p>
+                After evaporation, ants deposit new pheromones on the edges they traversed during their tour:
+            </p>
+            <div class="math-block">
+                $$\tau_{ij} \leftarrow \tau_{ij} + \sum_{k=1}^{m} \Delta \tau_{ij}^k$$
+            </div>
+            <p>
+                Where \(\Delta \tau_{ij}^k\) is the amount of pheromone laid by ant \(k\):
+            </p>
+            <div class="math-block">
+                $$\Delta \tau_{ij}^k = \begin{cases} \frac{Q}{L_k} & \text{if ant } k \text{ used edge } (i,j) \text{ in its tour} \\ 0 & \text{otherwise} \end{cases}$$
+            </div>
+            <p>
+                Where:
+                <br>• \(Q\) is a constant parameter representing pheromone yield quality.
+                <br>• \(L_k\) is the total length of the tour completed by ant \(k\). (Richer deposition occurs for shorter tours!)
+            </p>
+        </section>
+
+        <section>
+            <h2><i data-lucide="code-2" class="lucide"></i> Algorithm Steps & Pseudocode</h2>
+            <p>The operational framework of the Ant Colony Optimization loop is defined below:</p>
+            <pre><code><span class="code-keyword">Initialize</span> pheromone trails \(\tau_{ij}\) with a small positive constant.
+<span class="code-keyword">while</span> (iteration < max_iterations) {
+    <span class="code-comment">// 1. Construct Ant Solutions</span>
+    <span class="code-keyword">for each</span> Ant \(k \in \{1, ..., m\}\):
+        Place ant at a starting node.
+        <span class="code-keyword">while</span> (ant has not completed its tour):
+            Choose next node \(j\) using probability \(P_{ij}^k\).
+            Add node \(j\) to visited list.
+        Compute total tour length \(L_k\).
+
+    <span class="code-comment">// 2. Global Pheromone Update</span>
+    Evaporate pheromones on all edges: \(\tau_{ij} = (1 - \rho)\tau_{ij}\).
+    
+    <span class="code-keyword">for each</span> Ant \(k\):
+        <span class="code-keyword">for each</span> edge \((i,j)\) in ant \(k\)'s tour:
+            Deposit pheromone: \(\tau_{ij} = \tau_{ij} + \frac{Q}{L_k}\).
+
+    Save the shortest tour found by any ant in this iteration.
+}</code></pre>
+        </section>
+
+        <section>
+            <h2><i data-lucide="sliders" class="lucide"></i> Key Parameters</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3><i data-lucide="git-merge" class="lucide"></i> Alpha (\(\alpha\)) (Pheromone Weight)</h3>
+                    <p>Controls the influence of historical pheromone trails. A high \(\alpha\) value causes ants to strongly follow past paths, enhancing exploitation, but risking premature convergence.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-lucide="eye" class="lucide"></i> Beta (\(\beta\)) (Heuristic Weight)</h3>
+                    <p>Controls the influence of distance visibility. A high \(\beta\) encourages ants to make greedy, short-range choices based strictly on geometry, acting like a standard nearest-neighbor heuristic.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-lucide="droplet" class="lucide"></i> Evaporation Rate (\(\rho\))</h3>
+                    <p>Sets how fast pheromones disappear. High values ensure fast elimination of outdated routes, boosting global exploration, while low values preserve long-term swarm memories.</p>
+                </div>
+            </div>
+
+            <div class="callout">
+                <span class="callout-icon"><i data-lucide="lightbulb" style="color: var(--accent); width: 24px; height: 24px;"></i></span>
+                <div class="callout-text">
+                    <h4>Why ACO is Excelled at Routing Problems</h4>
+                    <p>By mimicking pheromone accumulation, ACO handles combinatorial optimization problems (like the Traveling Salesperson Problem, Vehicle Routing, and Network Routing) exceptionally well. It adapts instantly to dynamic changes in distance and node layouts.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

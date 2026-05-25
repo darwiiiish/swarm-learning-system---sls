@@ -1,0 +1,238 @@
+:root {
+    /* Natural Palette */
+    --grass-bg: #82a873;
+    --grass-dark: #6b8f5c;
+    --sidebar-bg: #f9faef;
+    --text-main: #2c3e21;
+    --text-muted: #5b704c;
+    --accent: #5e8c46;
+    --bird-color: #2b3327;
+    --food-color: #d99132; /* Golden/seed color */
+    
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --radius: 8px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--sidebar-bg);
+    color: var(--text-main);
+    overflow: hidden;
+}
+
+/* Layout */
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 320px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow);
+    z-index: 10;
+    overflow-y: auto;
+}
+
+header {
+    padding: 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+header h1 {
+    font-size: 2.2rem;
+    font-weight: 900; /* Extra Bolder */
+    margin-bottom: 4px;
+    /* Beautiful green gradient */
+    background: linear-gradient(90deg, #2c5914 0%, #68a33e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+header .author {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #68a33e;
+    margin-bottom: 12px;
+}
+
+header p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+section {
+    padding: 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+h2 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+/* Controls */
+.control-group {
+    margin-bottom: 20px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+label span {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 4px;
+    background: #e2e8db;
+    border-radius: 4px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+small {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Stats */
+.stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.1);
+}
+
+.stat:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    font-family: monospace;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.status-idle { color: var(--text-muted); }
+.status-searching { color: var(--accent); }
+.status-found { color: var(--food-color); font-weight: bold; }
+
+/* Main Simulation Area */
+.simulation-view {
+    flex-grow: 1;
+    position: relative;
+    background-color: var(--grass-bg);
+    background-image: url('assets/grass.png');
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    cursor: crosshair;
+}
+
+#grasslandCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.instruction-overlay {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-main);
+    box-shadow: var(--shadow);
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.instruction-overlay.hidden {
+    opacity: 0;
+}
+
+/* Terminal Console Styles */
+.terminal-panel {
+    border-bottom: none;
+    padding-bottom: 24px;
+}
+
+.terminal-panel h2 {
+    margin-bottom: 12px;
+}
+
+.terminal-output {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.70rem;
+    padding: 12px;
+    border-radius: var(--radius);
+    height: 250px;
+    overflow-y: auto;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    white-space: pre;
+    line-height: 1.4;
+}
+
+.terminal-output div {
+    margin-bottom: 2px;
+}
+
+/* Colors matching the python rich style */
+.log-iter { color: #569cd6; font-weight: bold; } /* Blue Iter */
+.log-score { color: #f44747; font-weight: bold; } /* Red Score */
+.log-pos { color: #d4d4d4; } /* White/Grey Pos */

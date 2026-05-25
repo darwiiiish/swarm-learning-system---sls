@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Swarm Optimization (PSO) Explanation</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lexend:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- KaTeX for beautiful math equations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --bg-color: #f4f6ee;
+            --panel-bg: rgba(255, 255, 255, 0.85);
+            --card-bg: rgba(249, 250, 239, 0.9);
+            --text-primary: #2c3e21; /* Moss Green */
+            --text-secondary: #5b704c;
+            --text-muted: #7f996d;
+            --accent: #5e8c46; /* Grass Green */
+            --accent-dark: #3a5c27;
+            --accent-glow: rgba(94, 140, 70, 0.15);
+            --border-color: rgba(94, 140, 70, 0.15);
+            --border-hover: rgba(94, 140, 70, 0.4);
+            --radius-lg: 16px;
+            --radius-md: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 10% 20%, rgba(94, 140, 70, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(217, 145, 50, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar customization */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(94, 140, 70, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(94, 140, 70, 0.4);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        /* Header block */
+        header {
+            text-align: center;
+            padding: 2.5rem;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 8px 32px rgba(44, 62, 33, 0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        header h1 {
+            font-family: 'Lexend', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--text-primary) 0%, var(--accent-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 2;
+            font-weight: 500;
+        }
+
+        /* Content Section */
+        section {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            box-shadow: 0 8px 24px rgba(44, 62, 33, 0.04);
+            backdrop-filter: blur(8px);
+            transition: var(--transition);
+        }
+
+        section:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 12px 30px rgba(94, 140, 70, 0.08);
+        }
+
+        section h2 {
+            font-family: 'Lexend', sans-serif;
+            font-size: 1.6rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: #3b502e;
+            font-size: 1.05rem;
+        }
+
+        /* Highlighting */
+        strong {
+            color: var(--accent-dark);
+            font-weight: 600;
+        }
+
+        /* Columns Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            transition: var(--transition);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(94, 140, 70, 0.12);
+        }
+
+        .card h3 {
+            font-family: 'Lexend', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-dark);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: #4a633a;
+            margin-bottom: 0;
+        }
+
+        /* Math Block styling */
+        .math-block {
+            background: rgba(255, 255, 255, 0.5);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin: 1.5rem 0;
+            font-size: 1.15rem;
+            overflow-x: auto;
+            color: var(--text-primary);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+        }
+
+        /* Code block styling */
+        pre {
+            background: #2b3327;
+            border: 1px solid rgba(94, 140, 70, 0.1);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(43, 51, 39, 0.15);
+        }
+
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: #f9faef;
+        }
+
+        .code-keyword { color: #82a873; font-weight: bold; }
+        .code-comment { color: #7f996d; font-style: italic; }
+        .code-string { color: #d99132; }
+
+        /* Alert/Callout Box */
+        .callout {
+            background: rgba(94, 140, 70, 0.05);
+            border: 1px solid rgba(94, 140, 70, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .callout-icon {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 2px;
+        }
+
+        .callout-text h4 {
+            font-family: 'Lexend', sans-serif;
+            color: var(--accent-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .callout-text p {
+            font-size: 0.95rem;
+            margin-bottom: 0;
+            color: #3b502e;
+        }
+
+        /* Icon Styling */
+        .lucide {
+            vertical-align: middle;
+            stroke-width: 2px;
+        }
+        
+        section h2 .lucide {
+            color: var(--accent-dark);
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            header, section {
+                padding: 1.5rem;
+            }
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Particle Swarm Optimization (<span>PSO</span>)</h1>
+            <p>Metaheuristic Optimization Inspired by Bird Flocking and Fish Schooling</p>
+        </header>
+
+        <section>
+            <h2><i data-lucide="activity" class="lucide"></i> Biological Inspiration</h2>
+            <p>
+                Imagine a flock of birds randomly searching for a single piece of food in an area. None of the birds know exactly where the food is, but in every iteration, they know how far away it is. The optimal strategy? **Follow the bird closest to the food.**
+            </p>
+            <p>
+                Developed by James Kennedy and Russell Eberhart in 1995, **Particle Swarm Optimization (PSO)** replicates this collective choreographic intelligence using simple individual vectors (particles) that adapt based on personal and community success:
+            </p>
+            <div class="grid">
+                <div class="card">
+                    <h3><i data-lucide="brain" class="lucide" style="color: var(--accent-dark);"></i> Personal Best (Cognitive)</h3>
+                    <p>Each particle remembers the location where it personally achieved its best performance (highest fitness) so far. This represents its individual memory/experience.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-lucide="globe" class="lucide" style="color: var(--accent-dark);"></i> Global Best (Social)</h3>
+                    <p>The entire swarm shares information to identify the absolute best location found by *any* particle in the colony. This drives social learning and swarm-wide alignment.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-lucide="rocket" class="lucide" style="color: var(--accent-dark);"></i> Velocity Alignment</h3>
+                    <p>Particles continuously adjust their flight speed and direction to balance their current inertia, their pull toward their personal best, and their pull toward the global best.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2><i data-lucide="binary" class="lucide"></i> Mathematical Formulation</h2>
+            <p>
+                Each candidate solution in the multi-dimensional search space is represented as a **Particle** with a position vector \(\vec{x}_i\) and a velocity vector \(\vec{v}_i\).
+            </p>
+
+            <h3>1. Velocity Update Equation</h3>
+            <p>
+                At each time step, the velocity of the \(i\)-th particle in dimension \(d\) is updated by balancing three forces:
+            </p>
+            <div class="math-block">
+                $$v_{id}^{t+1} = w v_{id}^t + c_1 r_1 (p_{id}^t - x_{id}^t) + c_2 r_2 (g_d^t - x_{id}^t)$$
+            </div>
+            <p>
+                Where:
+                <br>• \(v_{id}^t\) is the current velocity of particle \(i\) in dimension \(d\).
+                <br>• \(w\) is the **inertia weight**, controlling how much of the previous flight direction is preserved.
+                <br>• \(c_1\) is the **cognitive coefficient** (self-confidence), pulling the particle toward its personal best.
+                <br>• \(c_2\) is the **social coefficient** (peer influence), pulling the particle toward the global best.
+                <br>• \(r_1, r_2\) are independent random numbers generated uniformly in the range \([0, 1]\) at each step.
+                <br>• \(p_{id}^t\) is the personal best position (\(pbest\)) of particle \(i\).
+                <br>• \(g_d^t\) is the global best position (\(gbest\)) found in the entire swarm.
+                <br>• \(x_{id}^t\) is the current position of particle \(i\).
+            </p>
+
+            <h3>2. Position Update Equation</h3>
+            <p>
+                Using the newly calculated velocity vector, each particle flies to its new position in the search space:
+            </p>
+            <div class="math-block">
+                $$x_{id}^{t+1} = x_{id}^t + v_{id}^{t+1}$$
+            </div>
+        </section>
+
+        <section>
+            <h2><i data-lucide="code-2" class="lucide"></i> Algorithm Steps & Pseudocode</h2>
+            <p>The operational framework of the standard PSO loop is structured as follows:</p>
+            <pre><code><span class="code-keyword">Initialize</span> a population of particles with random positions \(x_i\) and velocities \(v_i\).
+Evaluate fitness for each particle.
+Set personal bests \(p_i = x_i\) and find global best \(g\).
+
+<span class="code-keyword">while</span> (iteration < max_iterations) {
+    <span class="code-keyword">for each</span> Particle \(i\):
+        <span class="code-comment">// 1. Update velocity and fly</span>
+        Update velocity \(v_i\) using the three components (Inertia, Cognitive, Social).
+        Update position \(x_i = x_i + v_i\).
+        
+        <span class="code-comment">// 2. Evaluate fitness</span>
+        Evaluate new fitness \(f(x_i)\).
+        
+        <span class="code-comment">// 3. Update Personal Best</span>
+        <span class="code-keyword">if</span> \(f(x_i)\) is better than \(f(p_i)\):
+            \(p_i = x_i\)
+            
+        <span class="code-comment">// 4. Update Global Best</span>
+        <span class="code-keyword">if</span> \(f(x_i)\) is better than \(f(g)\):
+            \(g = x_i\)
+
+    Save/Log global best \(g\).
+}</code></pre>
+        </section>
+
+        <section>
+            <h2><i data-lucide="sliders" class="lucide"></i> Key Parameters</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3><i data-lucide="scale" class="lucide"></i> Inertia Weight (\(w\))</h3>
+                    <p>Balances global exploration and local exploitation. A high inertia weight (\(> 0.9\)) promotes exploration of new areas, whereas a small weight (\(< 0.4\)) focuses the swarm on exploiting the immediate local neighborhood.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-lucide="user" class="lucide"></i> Cognitive Weight (\(c_1\))</h3>
+                    <p>Determines how much a particle relies on its own memory. High values lead to particles wandering around their individual historical bests, causing wide exploration paths.</p>
+                </div>
+                <div class="card">
+                    <h3><i data-lucide="users" class="lucide"></i> Social Weight (\(c_2\))</h3>
+                    <p>Determines how much a particle responds to the swarm's success. High values pull all particles rapidly toward the global best, accelerating convergence but risking local optima traps.</p>
+                </div>
+            </div>
+
+            <div class="callout">
+                <span class="callout-icon"><i data-lucide="lightbulb" style="color: var(--accent-dark); width: 24px; height: 24px;"></i></span>
+                <div class="callout-text">
+                    <h4>Why PSO is Highly Effective</h4>
+                    <p>PSO does not use traditional evolutionary operators (such as selection, mutation, or crossover). It relies purely on continuous position-shifting vector kinematics. This makes it extremely fast to compute, highly robust for continuous optimization, and simple to implement in multi-dimensional spaces.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+:root {
+    --bg: #0f0b08; --side: #1a1410; --acc: #5c4236; --acc-dim: #38291f;
+    --text: #d0c0b0; --mut: #8b7460; --phero: #a3e635;
+    --font: 'Outfit', sans-serif; --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; height: 100vh; }
+.app-container { display: flex; height: 100vh; width: 100vw; }
+.sidebar { width: 340px; flex-shrink: 0; background: var(--side); border-right: 1px solid var(--acc-dim); padding: 2rem 1.5rem; display: flex; flex-direction: column; box-shadow: 4px 0 20px rgba(0,0,0,0.4); z-index: 10; }
+.sidebar h1 { font-family: 'Lexend'; font-size: 1.4rem; color: #fff; margin-bottom: 0.25rem; letter-spacing: -0.5px; }
+.sidebar header p { font-size: 0.75rem; opacity: 0.7; }
+.sidebar .accent { color: var(--phero); }
+.control-groups { flex: 1; display: flex; flex-direction: column; gap: 2rem; margin-top: 2rem; overflow-y: auto; padding-right: 5px; }
+.control-group h3 { font-family: 'Lexend'; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.25rem; border-bottom: 1px solid var(--acc-dim); padding-bottom: 0.5rem; color: var(--mut); opacity: 0.8; }
+
+.slider-container { display: flex; flex-direction: column; gap: 0.4rem; }
+input[type="range"] { appearance: none; width: 100%; height: 4px; background: var(--acc-dim); border-radius: 2px; outline: none; margin: 8px 0; }
+input[type="range"]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: var(--phero); border-radius: 50%; cursor: pointer; border: 2px solid var(--bg); }
+.value-badge { align-self: flex-end; font-size: 0.65rem; font-family: monospace; background: var(--acc-dim); padding: 1px 6px; border-radius: 4px; color: var(--phero); margin-top: -4px; }
+
+.results-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; border: 1px solid var(--acc-dim); font-family: monospace; }
+.best-dist { font-size: 1.1rem; color: #fff; font-weight: bold; margin-bottom: 0.75rem; text-align: center; border-bottom: 1px dashed var(--acc-dim); padding-bottom: 0.5rem; }
+.best-dist span { color: var(--phero); }
+.log-entries { font-size: 0.7rem; height: 120px; overflow-y: auto; color: var(--mut); line-height: 1.4; scrollbar-width: thin; }
+
+.btn { padding: 0.75rem; border-radius: var(--radius); border: none; font-family: 'Lexend'; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; margin-top: 1rem; }
+.btn-secondary { background: var(--acc-dim); color: var(--text); width: 100%; }
+.btn-secondary:hover { background: var(--acc); }
+.btn-primary { background: var(--phero); color: var(--bg); width: 44px; height: 44px; font-size: 1.4rem; }
+.btn-danger { background: #ef4444; color: white; width: 44px; height: 44px; font-size: 1.4rem; }
+.food-controls { display: flex; gap: 1rem; align-items: center; }
+.hint { font-size: 0.7rem; color: var(--mut); font-style: italic; }
+.viewer { flex: 1; position: relative; background: #000; overflow: hidden; display: flex; flex-direction: column; }
+.canvas-wrapper { position: relative; flex: 1; width: 100%; height: 100%; }
+canvas { display: block; width: 100%; height: 100%; }
+.stats { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 350px; padding: 1rem; background: rgba(20, 15, 12, 0.9); border-radius: var(--radius); border: 1px solid var(--acc-dim); pointer-events: none; z-index: 10; }
+.stat-label { font-size: 0.7rem; text-transform: uppercase; color: var(--mut); letter-spacing: 1px; display: block; margin-bottom: 8px; }
+.progress-bar { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+#pheromone-progress { height: 100%; background: var(--phero); box-shadow: 0 0 10px var(--phero); width: 0%; transition: width 0.3s linear; }
+.overlay { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; z-index: 20; color: #fff; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--acc-dim); border-top-color: var(--phero); border-radius: 50%; animation: s 1s linear infinite; }
+@keyframes s { to { transform: rotate(360deg); } }
+
+

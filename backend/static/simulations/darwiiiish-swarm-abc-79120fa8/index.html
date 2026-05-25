@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC - Artificial Bee Colony Simulation</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Lexend:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="app-container">
+        <aside class="sidebar">
+            <header>
+                <h1>ABC <span class="accent">Simulation</span></h1>
+                <p style="color: white; font-weight: 600;">Abdelrahman Mamdouh - 221010901</p>
+                <p>Artificial Bee Colony</p>
+            </header>
+            
+            <div class="control-groups">
+                <section class="control-group">
+                    <h3>Environment</h3>
+                    <p class="hint">Click on the garden to plant flowers.</p>
+                    <div class="slider-container">
+                        <label>Bee Population</label>
+                        <input type="range" id="bee-count" min="10" max="300" value="100">
+                        <span id="bee-count-value" class="value-badge">100</span>
+                    </div>
+                </section>
+
+                <section class="control-group">
+                    <h3>ABC Parameters</h3>
+                    <div class="slider-container">
+                        <label>Limit (Depletion threshold)</label>
+                        <input type="range" id="limit-slider" min="5" max="100" value="30">
+                        <span id="limit-value" class="value-badge">30</span>
+                    </div>
+                    <div class="slider-container">
+                        <label>Simulation Speed</label>
+                        <input type="range" id="speed-slider" min="1" max="10" value="1" step="0.5">
+                        <span id="speed-value" class="value-badge">1x</span>
+                    </div>
+                </section>
+
+                <section class="control-group">
+                    <h3>Simulation Status</h3>
+                    <div id="results-log" class="results-box">
+                        <div class="stat-row">
+                            <span>Best Nectar:</span>
+                            <span id="current-best-nectar" class="accent-text">--</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Iteration:</span>
+                            <span id="iteration-count" class="accent-text">0</span>
+                        </div>
+                        <div class="log-entries" id="activity-log">
+                            Waiting for flowers...
+                        </div>
+                    </div>
+                </section>
+
+                <section class="control-group">
+                    <h3>Legend (Bee Roles)</h3>
+                    <div class="legend-box">
+                        <div class="legend-item">
+                            <span class="color-dot" style="background-color: #f43f5e; box-shadow: 0 0 8px #f43f5e;"></span>
+                            <span>Scout (Exploring)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="color-dot" style="background-color: #f59e0b; box-shadow: 0 0 8px #f59e0b;"></span>
+                            <span>Employed (Working)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="color-dot" style="background-color: #0ea5e9; box-shadow: 0 0 8px #0ea5e9;"></span>
+                            <span>Onlooker (Watching)</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <footer>
+                <button id="reset-btn" class="btn btn-secondary">Reset Garden</button>
+            </footer>
+        </aside>
+
+        <section class="viewer">
+            <div class="canvas-wrapper">
+                <canvas id="abc-canvas"></canvas>
+                <div id="loading-overlay" class="overlay" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Preparing hive...</p>
+                </div>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Hive Storage</span>
+                    <div class="progress-bar">
+                        <div id="storage-progress" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="abc.js"></script>
+</body>
+</html>

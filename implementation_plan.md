@@ -147,6 +147,41 @@ erDiagram
 
 ---
 
+## 6. Design System & UI Aesthetics
+
+To ensure a premium, engaging, and cohesive user experience, the frontend will strictly adhere to the following design system:
+
+### Color Palette
+*   **Primary (`#4A7C59`)**: Muted green, used for primary actions, active states, and dominant UI elements.
+*   **Secondary (`#D4AF37`)**: Gold/mustard yellow, used for highlights, secondary buttons, warnings, and accents.
+*   **Tertiary (`#8FA895`)**: Light sage green, used for subtle backgrounds, inactive elements, or supportive UI features.
+*   **Neutral (`#1A2F23`)**: Very dark green/charcoal, serving as the main background color for a sleek, deep dark-mode aesthetic.
+
+### Typography
+*   **Headlines**: *Source Serif Four* - Used for main titles, page headers, and prominent algorithm names.
+*   **Body**: *Hanken Grotesk* - Used for general paragraphs, descriptions, and educational content.
+*   **Labels/Code**: *Jetbrains Mono* - Used for tags, UI labels, metadata, and code snippets.
+
+### UI Components & Styling
+*   **Buttons**: Pill-shaped with generous border radius. Variants include Solid (Primary/Secondary), Inverted, and Outlined.
+*   **Inputs & Search**: Rounded corners with a dark background and subtle borders, integrating seamlessly into the dark theme.
+*   **Navigation & Icons**: Floating, pill-shaped navigation bars with clean, rounded icon buttons.
+*   **General Vibe**: The application should feel organic yet modern, utilizing the deep green background with vibrant green and gold accents to evoke a sense of nature (swarms) combined with high-tech algorithms.
+
+---
+
+## 7. SOLID & Clean Code Architecture
+
+The backend and frontend will adhere to Robert C. Martin's SOLID principles to ensure maintainability and scalability:
+
+*   **Single Responsibility Principle (SRP)**: Modules have one job. `GitHubIngestor` only downloads zips. `ManifestValidator` only checks metadata. `AlgorithmController` only handles HTTP routing.
+*   **Open/Closed Principle (OCP)**: Core systems are open to extension but closed to modification. We will use Strategy patterns for `StorageService` (e.g., local storage vs cloud storage in future) without altering core ingest logic.
+*   **Liskov Substitution Principle (LSP)**: Any subclass or implementation must be substitutable for its base interface. All database repositories will implement a standard `IRepository` interface so the database layer can be swapped.
+*   **Interface Segregation Principle (ISP)**: API endpoints and React contexts will be split into smaller, domain-specific interfaces (e.g., `SimulationAPI` vs `CollaborationAPI`) rather than one monolithic service.
+*   **Dependency Inversion Principle (DIP)**: High-level business logic will depend on abstractions (interfaces), not concrete implementations like direct SQLite queries. Dependency Injection (DI) will provide the necessary concrete classes at runtime.
+
+---
+
 ## Verification Plan
 
 ### Manual Verification Flow
@@ -154,3 +189,32 @@ erDiagram
 2.  **Direct DOM Integration Check**: Toggle sliders on our React page to verify values change inside the simulation iframe instantly, and observe output metrics syncing in real-time.
 3.  **Tab Verification**: Verify switching between the Simulation, Educational text (`explanation.html`), and Comment cards renders correctly with isolated states.
 4.  **Feedback & Application Flow**: Fill out a contributor request, verify it saves correctly to SQLite, and check that the contributor score increments the student's global contribution rank.
+
+---
+
+## 8. Premium UI Overhaul (Match Reference Photo)
+
+### User Review Required
+> [!IMPORTANT]
+> The current layout uses the correct color palette but lacks the structural depth and specific styling of the provided reference image. We will overhaul `Explorer.jsx` and the global CSS.
+
+### Proposed Changes
+
+#### Frontend Components
+##### [MODIFY] `frontend/src/index.css`
+- Add modern fonts (`Inter` for body, `Syne` or `Outfit` for display headings) if possible, or refine usage of current fonts.
+- Add utility classes for pills, badges, and layout grids to perfectly match the design.
+- Implement specialized buttons (`btn-forge` for the gold button, `btn-observe` for the dark outline button).
+
+##### [MODIFY] `frontend/src/App.jsx`
+- Remove the current generic header.
+- Allow `Explorer.jsx` to control the top-level hero section to match the "Channel Collective Intelligence" design.
+
+##### [MODIFY] `frontend/src/pages/Explorer.jsx`
+- **Hero Section**: Implement the centered text block with the "Primordial Phase v4.2" badge, "Channel Collective Intelligence" header, and the two main action buttons (Forge Algorithm, Observe Ether).
+- **Main Layout Grid**: Split the bottom area into a main content column (70%) for "Emergent Swarms" and a right sidebar (30%) for "Communal Resonance".
+- **Algorithm Cards**: Redesign cards to include tags (e.g., "Lithic Stability"), descriptive text, and stat badges, matching the dark green glassmorphism style.
+- **Sidebar**: Add mock data for recent activity and tags ("Shifting Currents", "Harmonic Sync Rate") to match the reference design exactly.
+
+### Verification Plan for UI
+- **Visual Match**: The user will view the page at `http://localhost:5173` and confirm it closely matches the provided reference photo.
