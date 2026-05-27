@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 export default function Explorer() {
-    const { token, updateUserScore } = useAuth();
+    const { token, updateUserScore, API_BASE_URL } = useAuth();
     const [algorithms, setAlgorithms] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [repoUrl, setRepoUrl] = useState('');
@@ -21,7 +21,7 @@ export default function Explorer() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('http://localhost:3001/api/algorithms')
+        fetch(`${API_BASE_URL}/api/algorithms`)
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
@@ -69,7 +69,7 @@ export default function Explorer() {
         setLoadingIngest(true);
 
         try {
-            const res = await fetch('http://localhost:3001/api/algorithms/ingest', {
+            const res = await fetch(`${API_BASE_URL}/api/algorithms/ingest`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

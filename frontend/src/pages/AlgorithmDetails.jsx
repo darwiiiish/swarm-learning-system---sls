@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 export default function AlgorithmDetails() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { user, isAuthenticated, updateUserScore } = useAuth();
+    const { user, isAuthenticated, updateUserScore, API_BASE_URL } = useAuth();
     const [algorithm, setAlgorithm] = useState(null);
     const [activeTab, setActiveTab] = useState('simulation');
     
@@ -63,7 +63,7 @@ export default function AlgorithmDetails() {
     const [errorMsg, setErrorMsg] = useState('');
 
     useEffect(() => {
-        fetch(`http://localhost:3001/api/algorithms/${slug}`)
+        fetch(`${API_BASE_URL}/api/algorithms/${slug}`)
             .then(res => res.json())
             .then(data => setAlgorithm(data))
             .catch(err => console.error(err));
@@ -72,7 +72,7 @@ export default function AlgorithmDetails() {
     useEffect(() => {
         if (activeTab === 'collaboration') {
             setCommentsLoading(true);
-            fetch(`http://localhost:3001/api/algorithms/${slug}/comments`)
+            fetch(`${API_BASE_URL}/api/algorithms/${slug}/comments`)
                 .then(res => res.json())
                 .then(data => {
                     setComments(Array.isArray(data) ? data : []);
@@ -87,8 +87,9 @@ export default function AlgorithmDetails() {
 
     if (!algorithm) return <div className="animate-fade-in" style={{ textAlign: 'center', padding: '4rem' }}>Loading...</div>;
 
-    const simUrl = `http://localhost:3001/simulations/${slug}/${algorithm.entry_point}`;
-    const eduUrl = `http://localhost:3001/simulations/${slug}/${algorithm.explanation_entry}`;
+    const simBase = API_BASE_URL || '/api';
+    const simUrl = `${simBase}/simulations/${slug}/${algorithm.entry_point}`;
+    const eduUrl = `${simBase}/simulations/${slug}/${algorithm.explanation_entry}`;
 
     const handleCommentSubmit = async (e) => {
         e.preventDefault();
@@ -99,7 +100,7 @@ export default function AlgorithmDetails() {
 
         try {
             const token = localStorage.getItem('sls_token');
-            const response = await fetch(`http://localhost:3001/api/algorithms/${slug}/comments`, {
+            const response = await fetch(`${API_BASE_URL}/api/algorithms/${slug}/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

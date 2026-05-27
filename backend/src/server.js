@@ -12,24 +12,28 @@ app.use(express.json());
 
 // Serve static simulation files
 app.use('/simulations', express.static(path.join(__dirname, '../static/simulations')));
+app.use('/api/simulations', express.static(path.join(__dirname, '../static/simulations')));
 
 // Dependency Injection setup
 const db = new Database(path.join(__dirname, '../data/database.db'));
 
 // Basic health check
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
     res.json({ status: 'ok', message: 'Swarm Learning Platform API is running.' });
 });
 
 // Import and inject dependencies into controllers
 const authController = require('./controllers/authController')(db);
 app.use('/api/auth', authController);
+app.use('/auth', authController); // For prefix-stripped routing under Vercel Services
 
 const algorithmController = require('./controllers/algorithmController')(db);
 app.use('/api/algorithms', algorithmController);
+app.use('/algorithms', algorithmController); // For prefix-stripped routing under Vercel Services
 
 const adminController = require('./controllers/adminController')(db);
 app.use('/api/admin', adminController);
+app.use('/admin', adminController); // For prefix-stripped routing under Vercel Services
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
