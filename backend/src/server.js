@@ -10,12 +10,25 @@ const PORT = process.env.PORT || 3001;
 app.cors = app.use(cors());
 app.use(express.json());
 
+const isVercel = process.env.VERCEL || process.env.NOW_BUILDER;
+
+// On Vercel (serverless environment), the local directories are read-only. We must write to /tmp.
+const dbPath = isVercel
+    ? path.join('/tmp', 'database.db')
+    : path.join(__dirname, '../data/database.db');
+
+const staticSimPath = isVercel
+    ? '/tmp/simulations'
+    : path.join(__dirname, '../static/simulations');
+
 // Serve static simulation files
 app.use('/simulations', express.static(path.join(__dirname, '../static/simulations')));
+app.use('/simulations', express.static('/tmp/simulations'));
 app.use('/api/simulations', express.static(path.join(__dirname, '../static/simulations')));
+app.use('/api/simulations', express.static('/tmp/simulations'));
 
 // Dependency Injection setup
-const db = new Database(path.join(__dirname, '../data/database.db'));
+const db = new Database(dbPath);
 
 // Basic health check
 app.get(['/api/health', '/health'], (req, res) => {

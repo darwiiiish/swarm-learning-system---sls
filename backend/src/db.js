@@ -1,6 +1,15 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcryptjs');
+
+const SUPER_ADMINS = [
+    { name: 'Khaled Badran', regnum: 'khaled_admin', pass: 'khaledbadran11111' },
+    { name: 'Salma Mohamed', regnum: 'salma_admin', pass: 'salmamohamed11110' },
+    { name: 'Abdelrahman Mamdouh', regnum: 'mamdouh_admin', pass: '11100' },
+    { name: 'Ahmed Elagamy', regnum: 'ahmed_admin', pass: 'ahmedelagamy11000' },
+    { name: 'Aly Lotfy', regnum: 'aly_admin', pass: 'alylotfy10000' }
+];
 
 class Database {
     constructor(dbFilePath) {
@@ -42,9 +51,14 @@ class Database {
                                 console.error('Error adding regnum column to users table:', alterErr.message);
                             } else {
                                 console.log('Successfully added regnum column to users table (auto-migration).');
+                                this.seedSuperadmins();
                             }
                         });
+                    } else {
+                        this.seedSuperadmins();
                     }
+                } else {
+                    this.seedSuperadmins();
                 }
             });
 
@@ -84,6 +98,37 @@ class Database {
                 FOREIGN KEY (applicant_id) REFERENCES users(id)
             )`);
         });
+    }
+
+    seedSuperadmins() {
+        for (const admin of SUPER_ADMINS) {
+            this.db.get(`SELECT id FROM users WHERE regnum = ? OR name = ?`, [admin.regnum, admin.name], (err, row) => {
+                if (err) {
+                    console.error('Error checking admin presence:', err.message);
+                    return;
+                }
+                if (row) {
+                    return; // Admin already exists
+                }
+                bcrypt.genSalt(10, (saltErr, salt) => {
+                    if (saltErr) return;
+                    bcrypt.hash(admin.pass, salt, (hashErr, hash) => {
+                        if (hashErr) return;
+                        this.db.run(
+                            `INSERT INTO users (regnum, name, password_hash, role, contribution_score) VALUES (?, ?, ?, ?, ?)`,
+                            [admin.regnum, admin.name, hash, 'superadmin', 0],
+                            (insertErr) => {
+                                if (insertErr) {
+                                    console.error(`Error inserting superadmin ${admin.name}:`, insertErr.message);
+                                } else {
+                                    console.log(`Successfully seeded superadmin ${admin.name}.`);
+                                }
+                            }
+                        );
+                    });
+                });
+            });
+        }
     }
 
     run(sql, params = []) {

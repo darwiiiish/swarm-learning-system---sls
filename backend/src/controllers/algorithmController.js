@@ -37,7 +37,11 @@ async function syncUserScore(db, userId) {
 module.exports = function(db) {
     const router = express.Router();
     const algorithmRepo = new AlgorithmRepository(db);
-    const ingestor = new GitHubIngestor(path.join(__dirname, '../../static/simulations'));
+    const isVercel = process.env.VERCEL || process.env.NOW_BUILDER;
+    const staticSimPath = isVercel
+        ? '/tmp/simulations'
+        : path.join(__dirname, '../../static/simulations');
+    const ingestor = new GitHubIngestor(staticSimPath);
 
     router.get('/', async (req, res) => {
         try {
