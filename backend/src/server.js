@@ -6,7 +6,7 @@ const path = require('path');
 const resolveRequire = (mod) => (mod && typeof mod === 'object' && 'default' in mod) ? mod.default : mod;
 
 const rawDb = require('./db');
-throw new Error("DEBUG_EXPORT: " + typeof rawDb + " | keys: " + Object.keys(rawDb || {}).join(',') + " | string: " + String(rawDb) + " | isFunction: " + (typeof rawDb === 'function'));
+
 const Database = resolveRequire(rawDb);
 
 const app = express();
@@ -34,9 +34,6 @@ app.use('/api/simulations', express.static(path.join(__dirname, '../static/simul
 app.use('/api/simulations', express.static('/tmp/simulations'));
 
 // Dependency Injection setup
-console.log("DEBUG - raw require('./db'):", require('./db'));
-console.log("DEBUG - resolved Database:", Database);
-console.log("DEBUG - typeof Database:", typeof Database);
 
 const db = new Database(dbPath);
 
