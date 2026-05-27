@@ -32,6 +32,10 @@ app.use('/api/simulations', express.static(path.join(__dirname, '../static/simul
 app.use('/api/simulations', express.static('/tmp/simulations'));
 
 // Dependency Injection setup
+console.log("DEBUG - raw require('./db'):", require('./db'));
+console.log("DEBUG - resolved Database:", Database);
+console.log("DEBUG - typeof Database:", typeof Database);
+
 const db = new Database(dbPath);
 
 // Basic health check
