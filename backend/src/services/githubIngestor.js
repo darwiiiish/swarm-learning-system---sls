@@ -35,11 +35,13 @@ class GitHubIngestor {
         try {
             // Download the zip
             let response;
+            let branch = 'main';
             try {
                 response = await axios({ url: mainZipUrl, method: 'GET', responseType: 'stream' });
             } catch (err) {
                 if (err.response && err.response.status === 404) {
                     response = await axios({ url: masterZipUrl, method: 'GET', responseType: 'stream' });
+                    branch = 'master';
                 } else {
                     throw err;
                 }
@@ -76,7 +78,7 @@ class GitHubIngestor {
             // Cleanup zip
             fs.unlinkSync(zipPath);
 
-            return { slug, fullPath: targetDir };
+            return { slug, fullPath: targetDir, branch };
         } catch (error) {
             if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
             throw new Error(`Ingestion failed: ${error.message}`);

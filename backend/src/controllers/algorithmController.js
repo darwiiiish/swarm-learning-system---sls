@@ -84,7 +84,7 @@ module.exports = function(db) {
                 return res.status(400).json({ error: 'This algorithm repository has already been imported.' });
             }
 
-            const { slug, fullPath } = await ingestor.ingest(repoUrl);
+            const { slug, fullPath, branch } = await ingestor.ingest(repoUrl);
             const repoName = repoUrl.split('/').pop() || slug;
             const manifest = ManifestValidator.validate(fullPath, repoName);
 
@@ -94,7 +94,8 @@ module.exports = function(db) {
                 repo_url: repoUrl,
                 entry_point: 'index.html',
                 explanation_entry: 'explanation.html',
-                creator_id: creatorId
+                creator_id: creatorId,
+                branch
             });
 
             // Recalculate and update the creator's score dynamically

@@ -38,11 +38,11 @@ class AlgorithmRepository extends IRepository {
     }
 
     async create(algorithm) {
-        const { name, slug, repo_url, entry_point, explanation_entry, creator_id } = algorithm;
+        const { name, slug, repo_url, entry_point, explanation_entry, creator_id, branch = 'main' } = algorithm;
         return this.db.run(
-            `INSERT INTO algorithms (name, slug, repo_url, entry_point, explanation_entry, creator_id)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [name, slug, repo_url, entry_point, explanation_entry, creator_id]
+            `INSERT INTO algorithms (name, slug, repo_url, entry_point, explanation_entry, creator_id, branch)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [name, slug, repo_url, entry_point, explanation_entry, creator_id, branch]
         );
     }
 }

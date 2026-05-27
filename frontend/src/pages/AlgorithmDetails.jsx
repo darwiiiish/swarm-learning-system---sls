@@ -87,9 +87,25 @@ export default function AlgorithmDetails() {
 
     if (!algorithm) return <div className="animate-fade-in" style={{ textAlign: 'center', padding: '4rem' }}>Loading...</div>;
 
-    const simBase = API_BASE_URL || '/api';
-    const simUrl = `${simBase}/simulations/${slug}/${algorithm.entry_point}`;
-    const eduUrl = `${simBase}/simulations/${slug}/${algorithm.explanation_entry}`;
+    const getSimulationUrl = (filePath) => {
+        if (!algorithm.repo_url) {
+            const simBase = API_BASE_URL || '/api';
+            return `${simBase}/simulations/${slug}/${filePath}`;
+        }
+        // Match both https and ssh formats
+        const match = algorithm.repo_url.match(/github\.com\/([^\/]+)\/([^\/]+)/i);
+        if (match) {
+            const owner = match[1];
+            const repo = match[2].replace(/\.git$/, '').replace(/\/$/, '');
+            const branch = algorithm.branch || 'main';
+            return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${filePath}`;
+        }
+        const simBase = API_BASE_URL || '/api';
+        return `${simBase}/simulations/${slug}/${filePath}`;
+    };
+
+    const simUrl = getSimulationUrl(algorithm.entry_point);
+    const eduUrl = getSimulationUrl(algorithm.explanation_entry);
 
     const handleCommentSubmit = async (e) => {
         e.preventDefault();

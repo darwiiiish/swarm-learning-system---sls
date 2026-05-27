@@ -86,9 +86,23 @@ class Database {
                     entry_point TEXT,
                     explanation_entry TEXT,
                     creator_id INTEGER,
+                    branch TEXT DEFAULT 'main',
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (creator_id) REFERENCES users(id)
                 )`);
+
+                // Auto-migration: check if branch column exists, if not add it dynamically
+                const algoColumnsResult = await this.db.execute("PRAGMA table_info(algorithms)");
+                const algoColumns = algoColumnsResult.rows || [];
+                const hasBranch = algoColumns.some(col => col.name === 'branch');
+                if (!hasBranch) {
+                    try {
+                        await this.db.execute("ALTER TABLE algorithms ADD COLUMN branch TEXT DEFAULT 'main'");
+                        console.log('Successfully added branch column to algorithms table (auto-migration).');
+                    } catch (alterErr) {
+                        console.error('Error adding branch column to algorithms table:', alterErr.message);
+                    }
+                }
 
                 await this.db.execute(`CREATE TABLE IF NOT EXISTS comments (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -132,6 +146,28 @@ class Database {
                         contribution_score INTEGER DEFAULT 0
                     )`);
 
+                    const checkAlgorithmsMigration = () => {
+                        this.db.all("PRAGMA table_info(algorithms)", (err, columns) => {
+                            if (!err && columns && columns.length > 0) {
+                                const hasBranch = columns.some(col => col.name === 'branch');
+                                if (!hasBranch) {
+                                    this.db.run("ALTER TABLE algorithms ADD COLUMN branch TEXT DEFAULT 'main'", (alterErr) => {
+                                        if (alterErr) {
+                                            console.error('Error adding branch column to algorithms table:', alterErr.message);
+                                        } else {
+                                            console.log('Successfully added branch column to algorithms table (auto-migration).');
+                                        }
+                                        this.seedSuperadmins().then(resolve).catch(reject);
+                                    });
+                                } else {
+                                    this.seedSuperadmins().then(resolve).catch(reject);
+                                }
+                            } else {
+                                this.seedSuperadmins().then(resolve).catch(reject);
+                            }
+                        });
+                    };
+
                     // Auto-migration: check if regnum column exists, if not add it dynamically
                     this.db.all("PRAGMA table_info(users)", (err, columns) => {
                         if (!err && columns && columns.length > 0) {
@@ -142,14 +178,14 @@ class Database {
                                         console.error('Error adding regnum column to users table:', alterErr.message);
                                     } else {
                                         console.log('Successfully added regnum column to users table (auto-migration).');
-                                        this.seedSuperadmins().then(resolve).catch(reject);
                                     }
+                                    checkAlgorithmsMigration();
                                 });
                             } else {
-                                this.seedSuperadmins().then(resolve).catch(reject);
+                                checkAlgorithmsMigration();
                             }
                         } else {
-                            this.seedSuperadmins().then(resolve).catch(reject);
+                            checkAlgorithmsMigration();
                         }
                     });
 
@@ -161,6 +197,7 @@ class Database {
                         entry_point TEXT,
                         explanation_entry TEXT,
                         creator_id INTEGER,
+                        branch TEXT DEFAULT 'main',
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (creator_id) REFERENCES users(id)
                     )`);
