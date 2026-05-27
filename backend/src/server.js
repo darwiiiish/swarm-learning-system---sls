@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const Database = require('./db');
+
+// Helper to resolve bundled ES modules wrapping CommonJS exports
+const resolveRequire = (mod) => (mod && typeof mod === 'object' && 'default' in mod) ? mod.default : mod;
+
+const Database = resolveRequire(require('./db'));
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -36,15 +40,15 @@ app.get(['/api/health', '/health'], (req, res) => {
 });
 
 // Import and inject dependencies into controllers
-const authController = require('./controllers/authController')(db);
+const authController = resolveRequire(require('./controllers/authController'))(db);
 app.use('/api/auth', authController);
 app.use('/auth', authController); // For prefix-stripped routing under Vercel Services
 
-const algorithmController = require('./controllers/algorithmController')(db);
+const algorithmController = resolveRequire(require('./controllers/algorithmController'))(db);
 app.use('/api/algorithms', algorithmController);
 app.use('/algorithms', algorithmController); // For prefix-stripped routing under Vercel Services
 
-const adminController = require('./controllers/adminController')(db);
+const adminController = resolveRequire(require('./controllers/adminController'))(db);
 app.use('/api/admin', adminController);
 app.use('/admin', adminController); // For prefix-stripped routing under Vercel Services
 
