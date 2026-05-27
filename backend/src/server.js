@@ -5,7 +5,9 @@ const path = require('path');
 // Helper to resolve bundled ES modules wrapping CommonJS exports
 const resolveRequire = (mod) => (mod && typeof mod === 'object' && 'default' in mod) ? mod.default : mod;
 
-const Database = resolveRequire(require('./db'));
+const rawDb = require('./db');
+throw new Error("DEBUG_EXPORT: " + typeof rawDb + " | keys: " + Object.keys(rawDb || {}).join(',') + " | string: " + String(rawDb) + " | isFunction: " + (typeof rawDb === 'function'));
+const Database = resolveRequire(rawDb);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
