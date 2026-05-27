@@ -29,7 +29,8 @@ class Database {
                 url: process.env.TURSO_DATABASE_URL,
                 authToken: process.env.TURSO_AUTH_TOKEN
             });
-            this.initSchema();
+            // Promise tracking database initialization
+            this.initPromise = this.initSchema();
         } else {
             // Ensure directory exists for local SQLite
             const dir = path.dirname(dbFilePath);
@@ -37,13 +38,16 @@ class Database {
                 fs.mkdirSync(dir, { recursive: true });
             }
             
-            this.db = new sqlite3.Database(dbFilePath, (err) => {
-                if (err) {
-                    console.error('Error connecting to SQLite database:', err.message);
-                } else {
-                    console.log('Connected to SQLite database.');
-                    this.initSchema();
-                }
+            this.initPromise = new Promise((resolve, reject) => {
+                this.db = new sqlite3.Database(dbFilePath, (err) => {
+                    if (err) {
+                        console.error('Error connecting to SQLite database:', err.message);
+                        reject(err);
+                    } else {
+                        console.log('Connected to SQLite database.');
+                        this.initSchema().then(resolve).catch(reject);
+                    }
+                });
             });
         }
     }
@@ -113,75 +117,78 @@ class Database {
                 await this.seedSuperadmins();
             } catch (err) {
                 console.error('Error initializing schema on Turso:', err);
+                throw err;
             }
         } else {
-            this.db.serialize(() => {
-                this.db.run(`CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    regnum TEXT UNIQUE,
-                    email TEXT UNIQUE,
-                    password_hash TEXT,
-                    name TEXT,
-                    role TEXT,
-                    contribution_score INTEGER DEFAULT 0
-                )`);
+            return new Promise((resolve, reject) => {
+                this.db.serialize(() => {
+                    this.db.run(`CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        regnum TEXT UNIQUE,
+                        email TEXT UNIQUE,
+                        password_hash TEXT,
+                        name TEXT,
+                        role TEXT,
+                        contribution_score INTEGER DEFAULT 0
+                    )`);
 
-                // Auto-migration: check if regnum column exists, if not add it dynamically
-                this.db.all("PRAGMA table_info(users)", (err, columns) => {
-                    if (!err && columns && columns.length > 0) {
-                        const hasRegnum = columns.some(col => col.name === 'regnum');
-                        if (!hasRegnum) {
-                            this.db.run("ALTER TABLE users ADD COLUMN regnum TEXT UNIQUE", (alterErr) => {
-                                if (alterErr) {
-                                    console.error('Error adding regnum column to users table:', alterErr.message);
-                                } else {
-                                    console.log('Successfully added regnum column to users table (auto-migration).');
-                                    this.seedSuperadmins();
-                                }
-                            });
+                    // Auto-migration: check if regnum column exists, if not add it dynamically
+                    this.db.all("PRAGMA table_info(users)", (err, columns) => {
+                        if (!err && columns && columns.length > 0) {
+                            const hasRegnum = columns.some(col => col.name === 'regnum');
+                            if (!hasRegnum) {
+                                this.db.run("ALTER TABLE users ADD COLUMN regnum TEXT UNIQUE", (alterErr) => {
+                                    if (alterErr) {
+                                        console.error('Error adding regnum column to users table:', alterErr.message);
+                                    } else {
+                                        console.log('Successfully added regnum column to users table (auto-migration).');
+                                        this.seedSuperadmins().then(resolve).catch(reject);
+                                    }
+                                });
+                            } else {
+                                this.seedSuperadmins().then(resolve).catch(reject);
+                            }
                         } else {
-                            this.seedSuperadmins();
+                            this.seedSuperadmins().then(resolve).catch(reject);
                         }
-                    } else {
-                        this.seedSuperadmins();
-                    }
+                    });
+
+                    this.db.run(`CREATE TABLE IF NOT EXISTS algorithms (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT,
+                        slug TEXT UNIQUE,
+                        repo_url TEXT,
+                        entry_point TEXT,
+                        explanation_entry TEXT,
+                        creator_id INTEGER,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (creator_id) REFERENCES users(id)
+                    )`);
+
+                    this.db.run(`CREATE TABLE IF NOT EXISTS comments (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        algorithm_id INTEGER,
+                        user_id INTEGER,
+                        message TEXT,
+                        is_fix_offer BOOLEAN,
+                        fix_details_url TEXT,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (algorithm_id) REFERENCES algorithms(id),
+                        FOREIGN KEY (user_id) REFERENCES users(id)
+                    )`);
+
+                    this.db.run(`CREATE TABLE IF NOT EXISTS contributor_applications (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        algorithm_id INTEGER,
+                        applicant_id INTEGER,
+                        applicant_email TEXT,
+                        applicant_message TEXT,
+                        status TEXT DEFAULT 'pending',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (algorithm_id) REFERENCES algorithms(id),
+                        FOREIGN KEY (applicant_id) REFERENCES users(id)
+                    )`);
                 });
-
-                this.db.run(`CREATE TABLE IF NOT EXISTS algorithms (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT,
-                    slug TEXT UNIQUE,
-                    repo_url TEXT,
-                    entry_point TEXT,
-                    explanation_entry TEXT,
-                    creator_id INTEGER,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (creator_id) REFERENCES users(id)
-                )`);
-
-                this.db.run(`CREATE TABLE IF NOT EXISTS comments (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    algorithm_id INTEGER,
-                    user_id INTEGER,
-                    message TEXT,
-                    is_fix_offer BOOLEAN,
-                    fix_details_url TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (algorithm_id) REFERENCES algorithms(id),
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                )`);
-
-                this.db.run(`CREATE TABLE IF NOT EXISTS contributor_applications (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    algorithm_id INTEGER,
-                    applicant_id INTEGER,
-                    applicant_email TEXT,
-                    applicant_message TEXT,
-                    status TEXT DEFAULT 'pending',
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (algorithm_id) REFERENCES algorithms(id),
-                    FOREIGN KEY (applicant_id) REFERENCES users(id)
-                )`);
             });
         }
     }
@@ -189,13 +196,14 @@ class Database {
     async seedSuperadmins() {
         for (const admin of SUPER_ADMINS) {
             try {
-                const row = await this.get(`SELECT id FROM users WHERE regnum = ? OR name = ?`, [admin.regnum, admin.name]);
+                // Use internal execute directly to avoid deadlock waiting on initPromise
+                const row = await this._getInternal(`SELECT id FROM users WHERE regnum = ? OR name = ?`, [admin.regnum, admin.name]);
                 if (row) {
                     continue; // Admin already exists
                 }
                 const salt = await bcrypt.genSalt(10);
                 const hash = await bcrypt.hash(admin.pass, salt);
-                await this.run(
+                await this._runInternal(
                     `INSERT INTO users (regnum, name, password_hash, role, contribution_score) VALUES (?, ?, ?, ?, ?)`,
                     [admin.regnum, admin.name, hash, 'superadmin', 0]
                 );
@@ -206,7 +214,8 @@ class Database {
         }
     }
 
-    run(sql, params = []) {
+    // Helper functions for internal use during seeding to bypass initPromise check
+    _runInternal(sql, params = []) {
         if (this.isTurso) {
             return this.db.execute({ sql, args: params }).then(result => {
                 const changes = result.rowsAffected;
@@ -226,7 +235,7 @@ class Database {
         }
     }
 
-    get(sql, params = []) {
+    _getInternal(sql, params = []) {
         if (this.isTurso) {
             return this.db.execute({ sql, args: params }).then(result => {
                 return result.rows[0] || null;
@@ -241,7 +250,19 @@ class Database {
         }
     }
 
-    all(sql, params = []) {
+    // Public functions wrapped to wait for schema initialization first
+    async run(sql, params = []) {
+        if (this.initPromise) await this.initPromise;
+        return this._runInternal(sql, params);
+    }
+
+    async get(sql, params = []) {
+        if (this.initPromise) await this.initPromise;
+        return this._getInternal(sql, params);
+    }
+
+    async all(sql, params = []) {
+        if (this.initPromise) await this.initPromise;
         if (this.isTurso) {
             return this.db.execute({ sql, args: params }).then(result => {
                 return result.rows;
