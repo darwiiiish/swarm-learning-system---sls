@@ -57,8 +57,6 @@ export default function AlgorithmDetails() {
     const [comments, setComments] = useState([]);
     const [commentsLoading, setCommentsLoading] = useState(false);
     const [newComment, setNewComment] = useState('');
-    const [isFixOffer, setIsFixOffer] = useState(false);
-    const [fixDetailsUrl, setFixDetailsUrl] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -124,8 +122,8 @@ export default function AlgorithmDetails() {
                 },
                 body: JSON.stringify({
                     message: newComment,
-                    is_fix_offer: isFixOffer ? 1 : 0,
-                    fix_details_url: isFixOffer ? fixDetailsUrl : null
+                    is_fix_offer: 0,
+                    fix_details_url: null
                 })
             });
 
@@ -145,8 +143,6 @@ export default function AlgorithmDetails() {
 
             // Reset states
             setNewComment('');
-            setIsFixOffer(false);
-            setFixDetailsUrl('');
         } catch (err) {
             console.error('Error posting comment:', err);
             setErrorMsg(err.message || 'Something went wrong.');
@@ -485,118 +481,72 @@ export default function AlgorithmDetails() {
                                         minute: '2-digit'
                                     });
                                     
-                                    if (c.is_fix_offer) {
-                                        return (
-                                            <div key={c.id} className="glass-panel animate-fade-in" style={{
-                                                background: 'linear-gradient(135deg, rgba(25, 42, 30, 0.45) 0%, rgba(18, 30, 22, 0.85) 100%)',
-                                                border: '1px solid rgba(252, 225, 115, 0.25)',
-                                                boxShadow: '0 8px 30px rgba(252, 225, 115, 0.05)',
-                                                borderRadius: '12px',
-                                                padding: '1.25rem'
-                                            }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <div style={{ background: 'rgba(252, 225, 115, 0.1)', padding: '0.4rem', borderRadius: '50%', color: 'var(--color-accent-gold)', display: 'flex' }}>
-                                                            <GitPullRequest size={16} />
-                                                        </div>
-                                                        <div>
-                                                            <strong style={{ color: '#fff', textTransform: 'capitalize' }}>{c.user_name}</strong>
-                                                            <span style={{ fontSize: '0.7rem', color: 'var(--color-accent-gold)', marginLeft: '0.5rem', fontFamily: 'var(--font-mono)', border: '1px solid rgba(252, 225, 115, 0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'rgba(252, 225, 115, 0.05)' }}>
-                                                                {c.user_role === 'superadmin' ? 'Superadmin' : `Student (${c.user_regnum})`}
-                                                            </span>
-                                                        </div>
+                                    return (
+                                        <div key={c.id} className="glass-panel animate-fade-in" style={{
+                                            background: 'rgba(21, 37, 28, 0.2)',
+                                            border: '1px solid rgba(163, 230, 181, 0.08)',
+                                            borderRadius: '12px',
+                                            padding: '1.25rem'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.4rem', borderRadius: '50%', color: 'var(--color-accent-green)', display: 'flex' }}>
+                                                        <User size={16} />
                                                     </div>
-                                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                        <Calendar size={12} /> {dateStr}
-                                                    </span>
-                                                </div>
-                                                
-                                                <p style={{ color: '#EFEFEF', fontSize: '0.95rem', lineHeight: '1.5', margin: '0 0 1rem 0', whiteSpace: 'pre-line' }}>{c.message}</p>
-                                                
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem' }}>
-                                                    {c.fix_details_url && (
-                                                        <a 
-                                                            href={c.fix_details_url} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer" 
-                                                            style={{ 
-                                                                display: 'inline-flex', 
-                                                                alignItems: 'center', 
-                                                                gap: '0.4rem', 
-                                                                color: 'var(--color-accent-green)', 
-                                                                textDecoration: 'none', 
-                                                                fontSize: '0.85rem',
-                                                                fontFamily: 'var(--font-mono)'
-                                                            }}
-                                                        >
-                                                            <GitPullRequest size={14} /> View Pull Request / Code Fix
-                                                        </a>
-                                                    )}
-                                                    <span style={{ 
-                                                        fontSize: '0.75rem', 
-                                                        fontWeight: '700', 
-                                                        color: 'var(--color-accent-gold)', 
-                                                        background: 'rgba(252, 225, 115, 0.1)', 
-                                                        padding: '0.25rem 0.6rem', 
-                                                        borderRadius: '4px',
-                                                        fontFamily: 'var(--font-mono)',
-                                                        border: '1px solid rgba(252, 225, 115, 0.2)',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '0.25rem'
-                                                    }}>
-                                                        <Award size={12} /> {Number(algorithm.creator_id) !== Number(c.user_id) ? "+1 SLS Star" : "+0 SLS Stars (Own Simulation)"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        );
-                                    } else {
-                                        return (
-                                            <div key={c.id} className="glass-panel animate-fade-in" style={{
-                                                background: 'rgba(21, 37, 28, 0.2)',
-                                                border: '1px solid rgba(163, 230, 181, 0.08)',
-                                                borderRadius: '12px',
-                                                padding: '1.25rem'
-                                            }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.4rem', borderRadius: '50%', color: 'var(--color-accent-green)', display: 'flex' }}>
-                                                            <User size={16} />
-                                                        </div>
-                                                        <div>
-                                                            <strong style={{ color: '#fff', textTransform: 'capitalize' }}>{c.user_name}</strong>
-                                                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginLeft: '0.5rem', fontFamily: 'var(--font-mono)', border: '1px solid rgba(255,255,255,0.08)', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'rgba(255,255,255,0.02)' }}>
-                                                                {c.user_role === 'superadmin' ? 'Superadmin' : `Student (${c.user_regnum})`}
-                                                            </span>
-                                                        </div>
+                                                    <div>
+                                                        <strong style={{ color: '#fff', textTransform: 'capitalize' }}>{c.user_name}</strong>
+                                                        <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginLeft: '0.5rem', fontFamily: 'var(--font-mono)', border: '1px solid rgba(255,255,255,0.08)', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'rgba(255,255,255,0.02)' }}>
+                                                            {c.user_role === 'superadmin' ? 'Superadmin' : `Student (${c.user_regnum})`}
+                                                        </span>
                                                     </div>
-                                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                        <Calendar size={12} /> {dateStr}
-                                                    </span>
                                                 </div>
-                                                
-                                                <p style={{ color: '#EFEFEF', fontSize: '0.95rem', lineHeight: '1.5', margin: '0 0 1rem 0', whiteSpace: 'pre-line' }}>{c.message}</p>
-                                                
-                                                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.6rem' }}>
-                                                    <span style={{ 
-                                                        fontSize: '0.7rem', 
-                                                        fontWeight: '700', 
-                                                        color: 'var(--color-accent-green-muted)', 
-                                                        background: 'rgba(163, 230, 181, 0.05)', 
-                                                        padding: '0.2rem 0.5rem', 
-                                                        borderRadius: '4px',
-                                                        fontFamily: 'var(--font-mono)',
-                                                        border: '1px solid rgba(163, 230, 181, 0.1)',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '0.2rem'
-                                                    }}>
-                                                        <Award size={10} /> {Number(algorithm.creator_id) !== Number(c.user_id) ? "+1 SLS Star" : "+0 SLS Stars (Own Simulation)"}
-                                                    </span>
-                                                </div>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    <Calendar size={12} /> {dateStr}
+                                                </span>
                                             </div>
-                                        );
-                                    }
+                                            
+                                            <p style={{ color: '#EFEFEF', fontSize: '0.95rem', lineHeight: '1.5', margin: '0 0 1rem 0', whiteSpace: 'pre-line' }}>{c.message}</p>
+                                            
+                                            {c.fix_details_url && (
+                                                <div style={{ marginBottom: '1rem', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.5rem' }}>
+                                                    <a 
+                                                        href={c.fix_details_url} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer" 
+                                                        style={{ 
+                                                            display: 'inline-flex', 
+                                                            alignItems: 'center', 
+                                                            gap: '0.4rem', 
+                                                            color: 'var(--color-accent-green)', 
+                                                            textDecoration: 'none', 
+                                                            fontSize: '0.85rem',
+                                                            fontFamily: 'var(--font-mono)'
+                                                        }}
+                                                    >
+                                                        <GitPullRequest size={14} /> View Reference URL
+                                                    </a>
+                                                </div>
+                                            )}
+
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.6rem' }}>
+                                                <span style={{ 
+                                                    fontSize: '0.7rem', 
+                                                    fontWeight: '700', 
+                                                    color: 'var(--color-accent-green-muted)', 
+                                                    background: 'rgba(163, 230, 181, 0.05)', 
+                                                    padding: '0.2rem 0.5rem', 
+                                                    borderRadius: '4px',
+                                                    fontFamily: 'var(--font-mono)',
+                                                    border: '1px solid rgba(163, 230, 181, 0.1)',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.2rem'
+                                                }}>
+                                                    <Award size={10} /> {Number(algorithm.creator_id) !== Number(c.user_id) ? "+1 SLS Star" : "+0 SLS Stars (Own Simulation)"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
                                 })
                             )}
                         </div>
@@ -622,49 +572,9 @@ export default function AlgorithmDetails() {
                                     required
                                 ></textarea>
                                 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-                                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none', color: 'var(--color-text-main)', fontSize: '0.9rem' }}>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={isFixOffer} 
-                                            onChange={e => {
-                                                setIsFixOffer(e.target.checked);
-                                                if (!e.target.checked) setFixDetailsUrl('');
-                                            }}
-                                            style={{ 
-                                                accentColor: 'var(--color-accent-gold)', 
-                                                width: '18px', 
-                                                height: '18px', 
-                                                cursor: 'pointer' 
-                                            }}
-                                        />
-                                        <span>This is a code fix or pull request suggestion (+1 SLS Star on other person's simulation)</span>
-                                    </label>
-
-                                    {isFixOffer && (
-                                        <div style={{ animation: 'fadeIn 0.3s ease forwards' }}>
-                                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-accent-gold)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>
-                                                GitHub Pull Request / Commit / Issue URL (Required)
-                                            </label>
-                                            <input 
-                                                type="url" 
-                                                className="input-glass" 
-                                                placeholder="https://github.com/username/repo/pull/1" 
-                                                value={fixDetailsUrl}
-                                                onChange={e => setFixDetailsUrl(e.target.value)}
-                                                required={isFixOffer}
-                                                style={{ 
-                                                    border: '1px solid rgba(252, 225, 115, 0.3)',
-                                                    boxShadow: '0 0 10px rgba(252, 225, 115, 0.05)'
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                                
                                 <button 
                                     type="submit" 
-                                    className={`btn ${isFixOffer ? 'btn-forge' : 'btn-primary'}`} 
+                                    className="btn btn-primary" 
                                     style={{ width: 'auto', minWidth: '180px' }}
                                     disabled={submittingComment}
                                 >
@@ -672,7 +582,7 @@ export default function AlgorithmDetails() {
                                         'Submitting...'
                                     ) : (
                                         <>
-                                            <Send size={16} /> {isFixOffer ? 'Submit Fix Offer' : 'Submit Feedback'}
+                                            <Send size={16} style={{ marginRight: '0.5rem' }} /> Submit Comment
                                         </>
                                     )}
                                 </button>
