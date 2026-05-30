@@ -98,7 +98,7 @@ export default function AlgorithmDetails() {
             const owner = match[1];
             const repo = match[2].replace(/\.git$/, '').replace(/\/$/, '');
             const branch = algorithm.branch || 'main';
-            return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${filePath}`;
+            return `https://raw.githack.com/${owner}/${repo}/${branch}/${filePath}`;
         }
         const simBase = API_BASE_URL || '/api';
         return `${simBase}/simulations/${slug}/${filePath}`;
